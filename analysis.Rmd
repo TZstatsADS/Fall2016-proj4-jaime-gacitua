@@ -81,7 +81,7 @@ H5close()
 
 dir.h5 <- './data/data/'
 files.list <- as.matrix(list.files(dir.h5, recursive = TRUE))
-
+                        
 #song.features <- get.features(files.list, dir.h5)
 
 
@@ -94,6 +94,9 @@ files.list <- as.matrix(list.files(dir.h5, recursive = TRUE))
 
 ## 1 Get word column
 word.col <- lyr[,c(1, 500)]
+word.col$bonita1 <- 0
+word.col$bonita1[word.col$bonita >= 1] <- 1
+
 names(word.col)[1] <- "song"
 
 ## 2 Merge column with features
@@ -107,4 +110,47 @@ summary(model)
 
 anova(model, test = 'Chisq')
 ```
+
+Calculate probability of occurrence of word in each song. Test algorighm, more than measuring prediction error.
+
+Below songs that have a high prediction, with bonita, and what is their corresponding tempo.
+
+```{r}
+predictor <- data.frame(tempo = word.col.and.features$tempo)
+fitted.results <- predict(model, newdata = predictor, type = 'response')
+result = cbind(word.col.and.features, fitted.results)
+head(result)
+
+a <- filter(result, result$bonita1 == 1 | fitted.results == max(fitted.results))
+a
+```
+
+There are some songs without tempo, those have a higher probability! Will research one of them.
+
+```{r}
+song.no.tempo <- "TRATCDG128F932B4D2"
+
+song.features.df[song.features.df$song == "TRATCDG128F932B4D2",]
+
+h5f <- h5dump('./data/data/A/T/C/TRATCDG128F932B4D2.h5', load=TRUE)
+
+analysis.test <- h5f$analysis
+data.test <- h5f$data
+metadata.test <- h5f$metadata
+musicbrainz.test <- h5f$musicbrainz
+
+# Tempo could help. Seems to fit with beats
+analysis.test$beats_start
+analysis.test$songs$tempo
+
+# Tatum
+analysis.test$tatums_start
+
+H5close()
+```
+
+There is no data for a few songs. Will have to do missing data management.
+
+
+
 
