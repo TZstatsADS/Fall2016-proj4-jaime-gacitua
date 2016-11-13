@@ -102,6 +102,8 @@ results <- lapply(1:5, function(x){
   ### Test Block
   #######################
   
+  #print(trained.models)
+  
   test.results <- testing.function(trained.models, test.set.data, word.columns, feature.columns,
                                    encode.df)  
   

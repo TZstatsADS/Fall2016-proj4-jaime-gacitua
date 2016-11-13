@@ -1,7 +1,7 @@
 
 
 
-testing.function <- function(trained.models, test.set.data, word.columns, feature.columns,
+testing.function <- function(word.models, test.set.data, word.columns, feature.columns,
                  encode.df){
   
   
@@ -10,13 +10,16 @@ testing.function <- function(trained.models, test.set.data, word.columns, featur
   # Calculate predicted probabilities
   probabilities <- pblapply(1:length(word.columns), 
                             
-                            function(x, word.models){
+                            function(x, word.models, data.for.testing){
+                              #print(word.models[[x]])
+                              
                               probabilities <- predict(word.models[[x]], 
                                                        newdata = data.for.testing, 
                                                        type = "response")                          
                               return(probabilities)
                             }
                             ,word.models = word.models
+                            ,data.for.testing = data.for.testing
   )
   probability.mat <- unlist(probabilities) %>%
     matrix(ncol = num.words, byrow = FALSE)
