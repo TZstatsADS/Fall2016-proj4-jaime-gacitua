@@ -8,7 +8,8 @@ library(pbapply)
 library(rscopus)
 source('./lib/features.R')
 source('./lib/model.R')
-
+source("./lib/functions.R")
+source("./lib/test.R")
 
 
 # Extract lyrics data
@@ -25,7 +26,7 @@ encode.df <- data.frame(words = names(lyr)[2:length(names(lyr))])
 encode.df$code <- 1:nrow(encode.df)+100000
 encode.df$code <- paste0(encode.df$code,'a')
 
-names(lyr)[2:length(names(lyr))] <- encode.df$code 
+names(lyr)[2:length(names(lyr))] <- encode.df$code
 
 #####
 # ETL features
@@ -60,68 +61,60 @@ feature.columns <- (1+num.words+1):(1+num.words+num.features)
 all.columns <- c(word.columns, feature.columns)
 
 train.set.size <- ceiling(pct.train.set*num.songs)
-train.set <- sample(1:num.songs, train.set.size, replace=F)
 
-train.set.data <- song.words.features.df[train.set,]
-test.set.data <- song.words.features.df[-train.set,]
 
-source('./lib/features.R')
-source('./lib/model.R')
 
-#############
-### Training Block
-#############
 
-### Logistic regression over each word ----
-word.models <- pblapply(1:length(word.columns), 
-                        
-                        function(x, train.set.data, word.columns, all.columns){
-                          
-                          # Define columns to keep
-                          col.keep <- c(word.columns[x], feature.columns)
-                
-                          #cat(col.keep, "\n")
-                          
-                          #cat("Solving for", col.keep[1], "\n")
 
-                          # Define data to feed the function
-                          data.for.model <- train.set.data[,col.keep]
-
-                          # run logistic regression
-                          model <- run.logistic(data.for.model)
-                          return(model)
-                          }
-                        ,train.set.data = train.set.data
-                        ,word.columns = word.columns
-                        ,all.columns = all.columns
+results <- lapply(1:5, function(x){
+  # Sample index to use to train
+  train.set <- sample(1:num.songs, train.set.size, replace=F)
   
+  train.set.data <- song.words.features.df[train.set,]
+  test.set.data <- song.words.features.df[-train.set,]
+  
+  #############
+  ### Training Block
+  #############
+  
+  ### Logistic regression over each word ----
+  trained.models <- pblapply(1:length(word.columns), 
+                             
+                             function(x, train.set.data, word.columns, all.columns){
+                               
+                               # Define columns to keep
+                               col.keep <- c(word.columns[x], feature.columns)
+                               
+                               # Define data to feed the function
+                               data.for.model <- train.set.data[,col.keep]
+                               
+                               # run logistic regression
+                               model <- run.logistic(data.for.model)
+                               return(model)
+                             }
+                             ,train.set.data = train.set.data
+                             ,word.columns = word.columns
+                             ,all.columns = all.columns
+                             
   )
-
-
-#######################
-### Test Block
-#######################
-
-
-# Base Data 
-data.for.testing <- data.frame(x = test.set.data[,feature.columns])
-
-# Calculate predicted probabilities
-probabilities <- pblapply(1:length(word.columns), 
-                        
-                        function(x, word.models){
-                          probabilities <- predict(word.models[[1]], 
-                                                   newdata = data.for.testing, 
-                                                   type = "response")                          
-                          
-                        }
-                        ,word.models = word.models
+  
+  #######################
+  ### Test Block
+  #######################
+  
+  test.results <- testing.function(trained.models, test.set.data, word.columns, feature.columns,
+                                   encode.df)  
+  
+  return(test.results$total)
+}
 )
-probability.mat <- unlist(probabilities) %>%
-  matrix(ncol = num.words)
 
-# Generate Ranking
+results <- unlist(results)
+hist(results)
+mean(results)
 
+
+### 0.223 result using only tempo
 
 
 
