@@ -28,7 +28,7 @@ frequencies <- frequencies[order(frequencies$freq, decreasing = TRUE),]
 frequencies$word <- factor(frequencies$word, levels = frequencies$word)
 frequencies$pct <- frequencies$freq / sum(frequencies$freq)
 
-plot_ly(data = frequencies, x = ~word, y = ~pct, type = 'scatter', mode = 'markers',
+a <- plot_ly(data = frequencies, x = ~word, y = ~pct, type = 'scatter', mode = 'markers',
         text = ~word) %>%
   layout(title = "Word frequency in songs | Percentage",
          scene = list(
@@ -39,6 +39,10 @@ plot_ly(data = frequencies, x = ~word, y = ~pct, type = 'scatter', mode = 'marke
            yaxis = list(title = "Percentage")))
 
 head(frequencies, n = 50)
+
+
+a
+
 ```
 
 ## Understanding the music features
@@ -61,13 +65,22 @@ musicbrainz.test <- h5f$musicbrainz
 # Tempo could help. Seems to fit with beats
 beat.diff <- diff(analysis.test$beats_start,1)
 hist(beat.diff)
-bpm.test <- 1 / mean(beat.diff) * 60
+bpm.test <- mean(60 / beat.diff)
 bpm.test
 tempo.test <- analysis.test$songs$tempo
+tempo.test
+
+bpm.var <- var(60 / beat.diff)
+bpm.var
 
 # Tatum
 tatums.diff <- diff(analysis.test$tatums_start,1)
 hist(tatums.diff)
+tatums.mean <- mean(tatums.diff)
+tatums.var <- var(tatums.diff)
+tatums.mean
+tatums.var
+
 
 H5close()
 

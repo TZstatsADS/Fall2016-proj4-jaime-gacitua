@@ -4,8 +4,16 @@
 testing.function <- function(word.models, test.set.data, word.columns, feature.columns,
                  encode.df){
   
+  ## Select feaures columns
+  data.for.testing <- test.set.data[,feature.columns]
   
-  data.for.testing <- data.frame(x = test.set.data[,feature.columns])
+  ## Rename features as x1 x2 x3 x4 ...
+  num.features <- ncol(data.for.testing)
+  feature.names <- lapply(1:num.features, 
+                          function(x){element <- paste0('x',x) }
+  )
+  feature.names <- unlist(feature.names)
+  names(data.for.testing) <- feature.names
   
   # Calculate predicted probabilities
   probabilities <- pblapply(1:length(word.columns), 

@@ -10,6 +10,7 @@ source('./lib/features.R')
 source('./lib/model.R')
 source("./lib/functions.R")
 source("./lib/test.R")
+source("./lib/train.R")
 
 
 # Extract lyrics data
@@ -33,15 +34,22 @@ names(lyr)[2:length(names(lyr))] <- encode.df$code
 #####
 
 ### Extract + transform Features
-### This takes 5 minutes
+
 dir.h5 <- './data/data/'
 files.list <- as.matrix(list.files(dir.h5, recursive = TRUE))
-song.features.df <- get.features(files.list, dir.h5)
-######################
+### This takes 5 minutes
+song.features.df.1 <- get.features(files.list, dir.h5)
+### This takes XX minutes
+song.features.df.2 <- get.features.2(files.list, dir.h5)
 
+### Select with one to use
+song.features.df <- song.features.df.2
 # combine words and features, to be sure songs are matching their features
 song.words.features.df <- inner_join(x = lyr, y = song.features.df, 
                                      by = "song")
+
+######################
+
 
 
 
@@ -49,7 +57,7 @@ song.words.features.df <- inner_join(x = lyr, y = song.features.df,
 ### Prepare test and training set ----
 
 # Parameters
-pct.train.set <- 0.8
+pct.train.set <- 0.8 #####################################################3
 set.seed(100)
 
 # Calculations
@@ -63,64 +71,48 @@ all.columns <- c(word.columns, feature.columns)
 train.set.size <- ceiling(pct.train.set*num.songs)
 
 
-
-
-
+source('./lib/features.R')
+source('./lib/model.R')
+source("./lib/functions.R")
+source("./lib/test.R")
+source("./lib/train.R")
 results <- lapply(1:5, function(x){
   # Sample index to use to train
   train.set <- sample(1:num.songs, train.set.size, replace=F)
   
   train.set.data <- song.words.features.df[train.set,]
-  test.set.data <- song.words.features.df[-train.set,]
+  test.set.data <- slice(song.words.features.df, -train.set)
+  
+  
+  print(head(test.set.data[,feature.columns]))
   
   #############
   ### Training Block
   #############
   
   ### Logistic regression over each word ----
-  trained.models <- pblapply(1:length(word.columns), 
-                             
-                             function(x, train.set.data, word.columns, all.columns){
-                               
-                               # Define columns to keep
-                               col.keep <- c(word.columns[x], feature.columns)
-                               
-                               # Define data to feed the function
-                               data.for.model <- train.set.data[,col.keep]
-                               
-                               # run logistic regression
-                               model <- run.logistic(data.for.model)
-                               return(model)
-                             }
-                             ,train.set.data = train.set.data
-                             ,word.columns = word.columns
-                             ,all.columns = all.columns
-                             
-  )
+  trained.models <- pblapply(1:length(word.columns),
+                             function(x)
+                             train.model(x, train.set.data, word.columns, all.columns)
+                             )
   
   #######################
   ### Test Block
   #######################
   
-  #print(trained.models)
+  print(trained.models[[1]])
   
   test.results <- testing.function(trained.models, test.set.data, word.columns, feature.columns,
                                    encode.df)  
   
   return(test.results$total)
-}
-)
+})
+
 
 results <- unlist(results)
 hist(results)
 mean(results)
 
 
-### 0.223 result using only tempo
-
-
-
-
-
-
-
+### 0.250 result using tempo+var+tatum+var
+### 0.241 result using only tempo
