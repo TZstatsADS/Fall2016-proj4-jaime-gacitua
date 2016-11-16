@@ -36,3 +36,36 @@ run.logistic <- function(data.for.model){
   return(model)
   
 }
+
+
+
+run.gbm <- function(data.for.model){
+
+  num.col <- ncol(data.for.model)
+  
+  data.for.model[data.for.model[,1] >= 1,1] <- 1
+  
+  data.features <- data.for.model[,2:num.col]
+  data.label <- data.for.model[,1]
+
+  
+  fit.gbm <- gbm.fit(x=data.features, 
+              y=data.label,
+              n.trees= 800,
+              distribution="bernoulli",
+              interaction.depth=10, 
+              bag.fraction = 0.5,
+              verbose=FALSE)
+      
+    
+  #cat("Finished fitting model", "\n")    
+
+  #best.iter.gbm <- gbm.perf(fit.gbm, method="OOB")
+
+  #cat("Finished tuning model", "\n")
+  
+  best.iter.gbm <- 2000
+  
+  return(list(trained.model=fit.gbm, best.param=best.iter.gbm))
+}
+

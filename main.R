@@ -6,6 +6,7 @@ library(rhdf5)
 library(dplyr)
 library(pbapply)
 library(rscopus)
+library(gbm)
 source('./lib/features.R')
 source('./lib/model.R')
 source("./lib/functions.R")
@@ -57,7 +58,7 @@ song.words.features.df <- inner_join(x = lyr, y = song.features.df,
 ### Prepare test and training set ----
 
 # Parameters
-pct.train.set <- 0.8 #####################################################3
+pct.train.set <- 0.80 #####################################################3
 set.seed(100)
 
 # Calculations
@@ -76,7 +77,10 @@ source('./lib/model.R')
 source("./lib/functions.R")
 source("./lib/test.R")
 source("./lib/train.R")
-results <- lapply(1:5, function(x){
+
+
+model = 'gbm'
+results <- lapply(1:1, function(x){
   # Sample index to use to train
   train.set <- sample(1:num.songs, train.set.size, replace=F)
   
@@ -93,7 +97,7 @@ results <- lapply(1:5, function(x){
   ### Logistic regression over each word ----
   trained.models <- pblapply(1:length(word.columns),
                              function(x)
-                             train.model(x, train.set.data, word.columns, all.columns)
+                             train.model(x, train.set.data, word.columns, all.columns, model)
                              )
   
   #######################
@@ -103,16 +107,18 @@ results <- lapply(1:5, function(x){
   print(trained.models[[1]])
   
   test.results <- testing.function(trained.models, test.set.data, word.columns, feature.columns,
-                                   encode.df)  
+                                   encode.df, model)  
   
   return(test.results$total)
 })
 
-
 results <- unlist(results)
-hist(results)
-mean(results)
+
+
+#hist(results)
+#mean(results)
 
 
 ### 0.250 result using tempo+var+tatum+var
 ### 0.241 result using only tempo
+### 0.237 GBM 500

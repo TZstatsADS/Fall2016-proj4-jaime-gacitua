@@ -13,20 +13,31 @@ predictive.rank.sum <- function(train.set.data, ranking, word.columns){
   #word.columns.data <- as.double(word.columns.data)
   
   word.columns.data[word.columns.data >= 1] <- 1
+  
+  a <- 1
 
-  transposed.ranking <- t(ranking)
+  #transposed.ranking <- t(ranking)
   
   # Calculate the result for every row
   ranksum.per.song <- lapply(1:nrow(ranking), 
                         function(x){
                           
                           # Calculate sum(  r_(w_i) )
-                          sum.value <- sum(word.columns.data[x,]*transposed.ranking[,x])
+                          sum.value <- sum(word.columns.data[x,]*ranking[x,])
                           
-                          r.bar <- 1 / K * sum(transposed.ranking[,x])
+                          
+                          r.bar <- sum(ranking[x,]) / K 
+                          
                           m <- sum(word.columns.data[x,])
                           
                           return.value <- 1 / m / r.bar * sum.value
+                          
+                          # Debugging code
+                          #browser()
+                          #debugdf <- cbind(word.columns.data[x,], ranking[x,])
+                          #debugdf.present <- debugdf[debugdf[,1]==1,]
+                          #debugdf.present[order(debugdf.present[,2]),]
+                          #sum(debugdf.present[,2]) / m / r.bar
                           
                           return(return.value)
                           }
@@ -39,19 +50,17 @@ predictive.rank.sum <- function(train.set.data, ranking, word.columns){
   # Sum
   sum.value.total <- 0
   for(i in 1:num.songs){
-    sum.value.total <- sum.value.total + sum(word.columns.data[i,]*transposed.ranking[,i])
+    sum.value.total <- sum.value.total + sum(word.columns.data[i,]*ranking[i,])
   }
   
   # Other values
-  r.bar.total <- sum(transposed.ranking) / K / num.songs
+  r.bar.total <- sum(ranking) / K / num.songs
   m.total <- sum(word.columns.data)
   
   # Compute
   ranksum.total <- 1 / m.total / r.bar.total * sum.value.total
   
-  
   return(list(total=ranksum.total, per.song=ranksum.per.song))
-  
   
 }
 
