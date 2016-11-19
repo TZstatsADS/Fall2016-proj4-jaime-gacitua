@@ -39,8 +39,6 @@ Term: Fall 2016
 
 + The best average sum of ranks achieved was 0.229, and the simplest model for that result was n=100 trees and depth=8.
 
-
-
 	
 Following [suggestions](http://nicercode.github.io/blog/2013-04-05-projects/) by [RICH FITZJOHN](http://nicercode.github.io/about/#Team) (@richfitz). This folder is orgarnized as follows.
 
