@@ -2,12 +2,19 @@
 
 
 testing.function <- function(word.models, test.set.data, word.columns, feature.columns,
-                 encode.df, model){
+                 encode.df, model, words.not.include, only.predict = FALSE){
 
   
   cat("Entering test block \n")
   ## Select feaures columns
-  data.for.testing <- test.set.data[,feature.columns]
+  
+  if(only.predict){
+    data.for.testing <- test.set.data
+  }
+  else{
+    data.for.testing <- test.set.data[,feature.columns]    
+  }
+
   
   
   # We have to process the matrix in case we are in logistic regression
@@ -26,25 +33,32 @@ testing.function <- function(word.models, test.set.data, word.columns, feature.c
   # Calculate predicted probabilities
   probabilities <- pblapply(1:length(word.columns), 
                             
-                            function(x, word.models, data.for.testing){
+                            function(x, word.models, data.for.testing, words.not.include){
                               #print(word.models[[x]])
-                              
-                              if(model == 'logistic'){
-                                probabilities <- predict(word.models[[x]], 
-                                                         newdata = data.for.testing, 
-                                                         type = "response")  
+                              if(x %in% words.not.include){
+                                probabilities <- rep(-1, nrow(data.for.testing))
                               }
                               else{
-                                probabilities <- predict(word.models[[x]]$trained.model, 
-                                                         newdata=data.for.testing, 
-                                                         n.trees=word.models[[x]]$best.param,
-                                                         type="response")
+                                if(model == 'logistic'){
+                                  probabilities <- predict(word.models[[x]], 
+                                                           newdata = data.for.testing, 
+                                                           type = "response")  
+                                }
+                                else{
+                                  probabilities <- predict(word.models[[x]]$trained.model, 
+                                                           newdata=data.for.testing, 
+                                                           n.trees=word.models[[x]]$best.param,
+                                                           type="response")  
+                                }
+                              
                                 
                               }
+
                               return(probabilities)
                             }
                             ,word.models = word.models
                             ,data.for.testing = data.for.testing
+                            ,words.not.include = words.not.include
   )
 
   probability.mat <- unlist(probabilities) %>%
@@ -91,15 +105,17 @@ testing.function <- function(word.models, test.set.data, word.columns, feature.c
   # Calculate Predicive rank sum
   # The lower the better.
   
-  
-  
-  rank.sum <- predictive.rank.sum(test.set.data, ranking, word.columns)
-  
-  hist(rank.sum$per.song,
-       main = paste0("Predictive Rank Sum | Total = ",round(rank.sum$total, digits = 3)))
-  
-  
-  return(rank.sum)  
+  if(only.predict){
+    return(ranking)
+  }
+  else{
+    rank.sum <- predictive.rank.sum(test.set.data, ranking, word.columns)
+    
+    hist(rank.sum$per.song,
+         main = paste0("Predictive Rank Sum | Total = ",round(rank.sum$total, digits = 3)))
+    
+    return(rank.sum)
+  }
 }
 
 

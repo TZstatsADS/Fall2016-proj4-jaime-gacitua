@@ -41,19 +41,22 @@ run.logistic <- function(data.for.model){
 
 run.gbm <- function(data.for.model){
 
+  num.trees <- 90
+  
   num.col <- ncol(data.for.model)
   
   data.for.model[data.for.model[,1] >= 1,1] <- 1
   
   data.features <- data.for.model[,2:num.col]
   data.label <- data.for.model[,1]
-
+  
+  data.features[is.na(data.features)] <- 0
   
   fit.gbm <- gbm.fit(x=data.features, 
               y=data.label,
-              n.trees= 800,
+              n.trees= num.trees,
               distribution="bernoulli",
-              interaction.depth=10, 
+              interaction.depth=7, 
               bag.fraction = 0.5,
               verbose=FALSE)
       
@@ -64,7 +67,7 @@ run.gbm <- function(data.for.model){
 
   #cat("Finished tuning model", "\n")
   
-  best.iter.gbm <- 2000
+  best.iter.gbm <- num.trees
   
   return(list(trained.model=fit.gbm, best.param=best.iter.gbm))
 }

@@ -55,7 +55,7 @@ a
 # http://labrosa.ee.columbia.edu/millionsong/pages/example-track-description
 ###########################################
 
-h5f <- h5dump('./data/data/A/A/A/TRAAABD128F429CF47.h5', load=TRUE)
+#h5f <- h5dump('./data/data/A/A/A/TRAAABD128F429CF47.h5', load=TRUE)
 
 analysis.test <- h5f$analysis
 data.test <- h5f$data
@@ -80,6 +80,26 @@ tatums.mean <- mean(tatums.diff)
 tatums.var <- var(tatums.diff)
 tatums.mean
 tatums.var
+
+
+analysis.test$songs$duration
+max(analysis.test$beats_start)+mean(beat.diff)
+
+mean(analysis.test$segments_loudness_max)
+var(analysis.test$segments_loudness_max)
+analysis.test$songs$loudness
+
+c(analysis.test$segments_timbre)  %>% summary()
+
+a <- apply(analysis.test$segments_timbre, 1, function(x){
+  median(x)
+} )
+a <- t(a)
+
+adf <- data.frame(t(a))
+
+
+names(analysis.test)
 
 
 H5close()
