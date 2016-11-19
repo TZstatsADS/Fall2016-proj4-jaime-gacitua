@@ -57,6 +57,7 @@ a
 
 #h5f <- h5dump('./data/data/A/A/A/TRAAABD128F429CF47.h5', load=TRUE)
 
+h5f <- h5dump('./data/TestSongFile100/testsong1.h5', load=TRUE)
 analysis.test <- h5f$analysis
 data.test <- h5f$data
 metadata.test <- h5f$metadata

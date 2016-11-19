@@ -170,7 +170,13 @@ test.results.final <- testing.function(trained.models.all, song.features.df.test
                                        encode.df, model, 
                                        words.not.include, only.predict = TRUE)  
 
-test.results.final[1:100, 500:510]
 
+# Prepare output for submission to Canvas
+dim(test.results.final)
+test.results.final.df <- as.data.frame(test.results.final)
+test.results.final.df$song <- song.features.df.test$song
+test.results.final.df <- test.results.final.df[,c(5001, 1:5000)] 
+names(test.results.final.df)[2:5001] <- as.vector(encode.df$words)
+write.csv(test.results.final.df, "./output/test.results.final.csv", row.names = TRUE)
 
 
