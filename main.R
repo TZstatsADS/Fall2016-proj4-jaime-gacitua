@@ -103,7 +103,7 @@ results <- lapply(1:num.folds, function(x){
   ### Train model over each word ----
   trained.models <- pblapply(1:length(word.columns),
                              function(x){
-                               if(x %in% words.not.include){
+                               if(x %in% (words.not.include-1)){
                                  model <- NULL
                                } 
                                else {
@@ -144,8 +144,6 @@ mean(results)
 ### 0.234 avg tempo+var+tatum+var+key+loudness+duration+timbre GBM 100 trees, 8 depth
 ### 0.236 avg avg tempo+var+tatum+var+key+loudness+duration+timbre GBM 100 trees, 8 depth
 
-source('./lib/features.R')
-source("./lib/test.R")
 dir.h5 <- './data/TestSongFile100/'
 files.list.test <- as.matrix(list.files(dir.h5, recursive = TRUE))
 song.features.df.test <- get.features.2(files.list.test, dir.h5, 1)
@@ -153,7 +151,7 @@ song.features.df.test <- get.features.2(files.list.test, dir.h5, 1)
 
 trained.models.all <- pblapply(1:length(word.columns),
                            function(x){
-                             if(x %in% words.not.include){
+                             if(x %in% (words.not.include-1)){
                                model <- NULL
                              } 
                              else {
@@ -168,7 +166,7 @@ trained.models.all <- pblapply(1:length(word.columns),
 test.results.final <- testing.function(trained.models.all, song.features.df.test, 
                                        word.columns, feature.columns,
                                        encode.df, model, 
-                                       words.not.include, only.predict = TRUE)  
+                                       words.not.include-1, only.predict = TRUE)  
 
 
 # Prepare output for submission to Canvas
